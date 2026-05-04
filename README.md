@@ -1,2 +1,2 @@
-# kuis-mtk-by-qihh
+# kuismtk
 latso aska mtk
