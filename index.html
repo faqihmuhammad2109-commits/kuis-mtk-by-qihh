@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Matematika: Transformasi & Peluang</title>
+    <style>
+        :root { --primary: #4a90e2; --success: #2ecc71; --danger: #e74c3c; --bg: #f5f7fa; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .quiz-container { background: white; max-width: 700px; width: 100%; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; font-size: 1.5rem; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .progress-bar { height: 10px; background: #eee; border-radius: 5px; margin-bottom: 20px; overflow: hidden; }
+        #progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; }
+        .question { font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; line-height: 1.4; color: #2c3e50; }
+        .options { display: grid; gap: 12px; }
+        button.opt-btn { padding: 15px; border: 2px solid #edf2f7; border-radius: 10px; background: white; cursor: pointer; text-align: left; font-size: 1rem; transition: all 0.2s; }
+        button.opt-btn:hover:not([disabled]) { border-color: var(--primary); background: #f0f7ff; }
+        button.correct { background-color: #d4edda !important; border-color: var(--success) !important; color: #155724; }
+        button.wrong { background-color: #f8d7da !important; border-color: var(--danger) !important; color: #721c24; }
+        #next-btn { margin-top: 25px; width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; display: none; }
+        #result-screen { text-align: center; display: none; }
+        .score-circle { font-size: 3rem; font-weight: bold; color: var(--primary); margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <h1>Asesmen Sumatif Matematika</h1>
+    
+    <div id="quiz-box">
+        <div class="progress-bar"><div id="progress-fill"></div></div>
+        <div id="info" style="margin-bottom: 10px; color: #666;">Soal 1 dari 40</div>
+        <div class="question" id="question-text">Memuat soal...</div>
+        <div class="options" id="options-container"></div>
+        <button id="next-btn" onclick="nextQuestion()">Lanjut ke Soal Berikutnya</button>
+    </div>
+
+    <div id="result-screen">
+        <h2>Hasil Kuis Selesai!</h2>
+        <div class="score-circle" id="final-score">0</div>
+        <p id="score-text"></p>
+        <button onclick="location.reload()" style="padding: 12px 25px; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer;">Ulangi Kuis</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { q: "Bayangan Titik B(-6,4) dicerminkan dengan Titik pusat Koordinat O(0,0) adalah...", a: ["(6,-4)", "(-6,-4)", "(6,4)", "(4,-6)"], c: 0 },
+        { q: "Bayangan Titik Q(-4,-2) dicerminkan dengan garis x = 2 adalah...", a: ["(0,-2)", "(8,-2)", "(6,-2)", "(-8,-2)"], c: 1 },
+        { q: "Bayangan Titik D(5,3) ditranslasikan dengan [-4, -3] adalah...", a: ["(1,1)", "(9,6)", "(1,0)", "(0,1)"], c: 2 },
+        { q: "Titik A(-4,4) mempunyai bayangan A'(3,-2) apabila ditranslasikan dengan...", a: ["[7, -6]", "[-7, 6]", "[1, 2]", "[7, 6]"], c: 0 },
+        { q: "Bayangan Titik E(6,-2) dirotasikan searah jarum jam dengan sudut 180° adalah...", a: ["(6,2)", "(-6,-2)", "(2,6)", "(-6,2)"], c: 3 },
+        { q: "Bayangan Titik C(2,-5) didilatasi dengan pusat O(0,0) dan k = 3 adalah...", a: ["(6,-15)", "(5,-2)", "(6,15)", "(-6,-15)"], c: 0 },
+        { q: "Bayangan Titik D(-4,3) didilatasi dengan pusat O(0,0) dan k = 3 adalah...", a: ["(-1,0)", "(-12,9)", "(12,-9)", "(-12,-9)"], c: 1 },
+        { q: "Bayangan Titik A(-2,3) dicerminkan dengan sumbu y dan dilanjutkan translasi [4, -3] adalah...", a: ["(6,0)", "(2,0)", "(6,6)", "(2,6)"], c: 0 },
+        { q: "Bayangan Titik F(3,1) dirotasikan berlawanan arah jarum jam 270° dan dilanjutkan dilatasi [O, 3] adalah...", a: ["(3,9)", "(9,-3)", "(3,-9)", "(-9,3)"], c: 2 },
+        { q: "Banyak anggota ruang sampel pada percobaan pelemparan 6 buah mata uang logam adalah...", a: ["12", "36", "64", "128"], c: 2 },
+        { q: "Dua buah dadu dilempar sekali. Banyak titik sampel jumlah mata dadu 5 adalah...", a: ["3", "4", "5", "6"], c: 1 },
+        { q: "Peluang muncul mata dadu faktor dari 5 pada pelemparan sebuah dadu adalah...", a: ["1/6", "1/3", "1/2", "2/3"], c: 1 },
+        { q: "Dua mata uang dilempar bersamaan. Peluang muncul sisi angka yang sama (AA atau GG) adalah...", a: ["1/4", "1/2", "3/4", "1"], c: 1 },
+        { q: "Peluang muncul mata dadu jumlah 9 pada pelemparan dua dadu adalah...", a: ["1/9", "4/36", "1/12", "5/36"], c: 0 },
+        { q: "Dari 6 putra dan 4 putri, dipilih satu ketua. Peluang terpilih siswa putri adalah...", a: ["0,4", "0,6", "4/6", "1/4"], c: 0 },
+        { q: "Peluang terpilih huruf A dari kata 'SEPAK BOLA' secara acak adalah...", a: ["1/9", "2/9", "1/8", "2/8"], c: 1 },
+        { q: "Tiga koin dilempar. Peluang munculnya minimal 2 permukaan yang sama adalah...", a: ["1/4", "1/2", "3/4", "1"], c: 3 },
+        { q: "Kantong berisi 4 merah, 7 putih, 9 hijau. Jika 1 putih diambil (tidak balik), peluang terambil merah pada pengambilan kedua adalah...", a: ["4/20", "4/19", "7/19", "4/11"], c: 1 },
+        { q: "Peluang terambil bola bernomor bilangan prima dari 10 bola (1-10) adalah...", a: ["0,3", "0,4", "0,5", "2/5"], c: 3 },
+        { q: "Titik Q(-6,-1) menjadi Q'(6,1) apabila dirotasikan dengan sudut...", a: ["90°", "180°", "270°", "360°"], c: 1 },
+        { q: "Bayangan Titik D(12,-9) didilatasi dengan pusat O(0,0) dan k = -1/3 adalah...", a: ["(-4,3)", "(4,-3)", "(-4,-3)", "(36,-27)"], c: 0 },
+        { q: "Titik Q(-1,3) bayangan Q'(3,-9) didilatasi dengan pusat O(0,0). Nilai k adalah...", a: ["3", "-3", "1/3", "-1/3"], c: 1 },
+        { q: "Bayangan Titik A(-3,1) dicerminkan dengan sumbu x adalah...", a: ["(3,1)", "(-3,-1)", "(3,-1)", "(1,-3)"], c: 1 },
+        { q: "Jika F'(-2,4) bayangan dari F didilatasi [O, 1/2], maka titik F adalah...", a: ["(-1,2)", "(-4,8)", "(1,-2)", "(-4,2)"], c: 1 },
+        { q: "Koordinat pusat O(0,0) dengan k=1/2 dan F'(-2,4). Titik F asal adalah...", a: ["(-4,8)", "(-1,2)", "(4,-8)", "(-8,4)"], c: 0 },
+        { q: "Titik A(-2,3) direfleksi sumbu x lalu translasi [-3, 4] hasilnya...", a: ["(-5,1)", "(1,7)", "(-5,7)", "(1,1)"], c: 0 },
+        { q: "Titik F(3,1) rotasi searah jarum jam 270° lalu dilatasi k = -4 adalah...", a: ["(4,-12)", "(-4,12)", "(12,-4)", "(-12,4)"], c: 0 },
+        { q: "Titik C(-3,2) dicerminkan y=x lalu rotasi berlawanan jarum jam 90° adalah...", a: ["(-3,-2)", "(-2,-3)", "(3,2)", "(2,3)"], c: 1 },
+        { q: "Titik D(3,-8) ditranslasi [-1, -2] lalu dilatasi k=1/2 adalah...", a: ["(1,-5)", "(2,-10)", "(1,-4)", "(2,-5)"], c: 0 },
+        { q: "Titik D(-2,3) didilatasi k=3 lalu rotasi 180° adalah...", a: ["(6,-9)", "(-6,9)", "(9,-6)", "(-9,6)"], c: 0 },
+        { q: "Satu lusin spidol (3 merah, 5 biru, sisanya hitam). Peluang terambil spidol hitam...", a: ["1/4", "1/3", "4/12", "1/6"], c: 2 },
+        { q: "Dari 25 anak, 13 suka menari, 15 menyanyi, 10 suka keduanya. Peluang anak tidak suka keduanya...", a: ["7/25", "3/25", "10/25", "12/25"], c: 0 },
+        { q: "Kantong: 10 kuning, 5 putih, 25 biru. Diambil 1 putih (tidak balik). Peluang ambil kuning kedua...", a: ["10/40", "10/39", "5/39", "10/35"], c: 1 },
+        { q: "Bola nomor 1-7. Peluang terambil nomor genap adalah...", a: ["2/7", "3/7", "4/7", "1/2"], c: 1 },
+        { q: "Box: 10 putih, 25 merah, 15 kuning. Peluang terambil merah ATAU kuning adalah...", a: ["4/5", "3/5", "2/5", "1/2"], c: 0 },
+        { q: "Peluang terambil kelereng putih (7) dari total (11) setelah satu putih diambil dan dikembalikan...", a: ["6/11", "7/11", "7/10", "6/10"], c: 1 },
+        { q: "Peluang muncul mata dadu faktor dari 4 adalah...", a: ["1/6", "1/3", "1/2", "2/3"], c: 2 },
+        { q: "Kantong: 15 putih, 18 biru, 7 merah. Diambil 1 putih (tidak balik). Peluang ambil merah kedua...", a: ["7/40", "7/39", "15/39", "18/39"], c: 1 },
+        { q: "Peluang muncul 1 angka pada pelemparan 3 uang logam secara bersamaan adalah...", a: ["1/8", "2/8", "3/8", "4/8"], c: 2 },
+        { q: "Peluang terpilih huruf M dari kata 'MAEMUNAH' adalah...", a: ["1/8", "2/8", "1/4", "Semua Benar"], c: 3 }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+
+    function loadQuestion() {
+        const qData = questions[currentQuestion];
+        document.getElementById('info').innerText = `Soal ${currentQuestion + 1} dari ${questions.length}`;
+        document.getElementById('question-text').innerText = qData.q;
+        document.getElementById('progress-fill').style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        
+        qData.a.forEach((option, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'opt-btn';
+            btn.innerText = option;
+            btn.onclick = () => checkAnswer(index, btn);
+            container.appendChild(btn);
+        });
+        document.getElementById('next-btn').style.display = 'none';
+    }
+
+    function checkAnswer(idx, btn) {
+        const correctIdx = questions[currentQuestion].c;
+        const allBtns = document.querySelectorAll('.opt-btn');
+        
+        allBtns.forEach(b => b.disabled = true);
+
+        if(idx === correctIdx) {
+            btn.classList.add('correct');
+            score++;
+        } else {
+            btn.classList.add('wrong');
+            allBtns[correctIdx].classList.add('correct');
+        }
+        document.getElementById('next-btn').style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentQuestion++;
+        if(currentQuestion < questions.length) {
+            loadQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        document.getElementById('quiz-box').style.display = 'none';
+        const screen = document.getElementById('result-screen');
+        screen.style.display = 'block';
+        document.getElementById('final-score').innerText = Math.round((score / questions.length) * 100);
+        document.getElementById('score-text').innerText = `Kamu menjawab benar ${score} dari ${questions.length} soal.`;
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
